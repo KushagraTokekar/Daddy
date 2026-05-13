@@ -1,0 +1,17 @@
+.env
+node_modules/
+.env*
+
+
+node_modules/
+.env
+.env.*
+logs/
+uploads/
+tmp/
+
+# compiled output
+dist/
+
+# debug files
+npm-debug.log*
