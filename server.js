@@ -14,7 +14,7 @@ const { db, testDbConnection, closeDbPool } = require("./db");
 
 // ─── ENV VALIDATION ─────────────────────────────
 
-const REQUIRED_ENV = ["JWT_SECRET", "EMAIL_USER", "EMAIL_PASS", "DB_HOST", "DB_USER", "DB_PASS", "DB_NAME"];
+const REQUIRED_ENV = ["JWT_SECRET", "BREVO_API_KEY", "EMAIL_FROM", "DB_HOST", "DB_USER", "DB_PASS", "DB_NAME"];
 const missingEnv = REQUIRED_ENV.filter((key) => !process.env[key]?.toString().trim());
 
 console.log("[ENV_CHECK]", {
