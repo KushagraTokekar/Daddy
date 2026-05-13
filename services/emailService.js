@@ -1,13 +1,16 @@
-const { Resend } = require("resend");
+const nodemailer = require("nodemailer");
 
-const resend = new Resend(process.env.EMAIL_PASS);
-
-const transporter = {
-  sendMail: async ({ from, to, subject, text }) => {
-    const { data, error } = await resend.emails.send({ from, to, subject, text });
-    if (error) throw new Error(error.message);
-    return { messageId: data.id };
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST || "smtp-relay.brevo.com",
+  port: Number(process.env.EMAIL_PORT) || 587,
+  secure: false,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
   },
-};
+  connectionTimeout: 15000,
+  greetingTimeout: 10000,
+  socketTimeout: 20000,
+});
 
 module.exports = transporter;
