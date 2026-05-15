@@ -10,9 +10,20 @@ for (const key of REQUIRED_DB_ENV) {
   }
 }
 
+const dbPort = Number(process.env.DB_PORT) || 3306;
+const INVALID_CONTROL_PANEL_PORTS = new Set([2082, 2083, 2086, 2087, 2095, 2096]);
+if (INVALID_CONTROL_PANEL_PORTS.has(dbPort)) {
+  console.error("[DB_CONFIG_ERROR] Invalid DB_PORT configured", {
+    dbPort,
+    reason: "This is a cPanel/WHM/webmail control panel port, not a MySQL service port.",
+    expected: "Use your MySQL service port (usually 3306) from your hosting provider.",
+  });
+  process.exit(1);
+}
+
 const db = mysql.createPool({
   host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT) || 3306,
+  port: dbPort,
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
   database: process.env.DB_NAME,
@@ -54,7 +65,7 @@ async function testDbConnection() {
   } catch (err) {
     const safeDbConfig = {
       host: process.env.DB_HOST,
-      port: Number(process.env.DB_PORT) || 3306,
+      port: dbPort,
       user: process.env.DB_USER,
       database: process.env.DB_NAME,
       connectTimeout: Number(process.env.DB_CONNECT_TIMEOUT_MS) || 10000,
