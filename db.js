@@ -16,6 +16,7 @@ const db = mysql.createPool({
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
   database: process.env.DB_NAME,
+  connectTimeout: Number(process.env.DB_CONNECT_TIMEOUT_MS) || 10000,
 
   waitForConnections: true,
   connectionLimit: Number(process.env.DB_POOL_LIMIT) || 10,
@@ -51,15 +52,35 @@ async function testDbConnection() {
     }
     console.log("[DB] Pool connected successfully");
   } catch (err) {
+    const safeDbConfig = {
+      host: process.env.DB_HOST,
+      port: Number(process.env.DB_PORT) || 3306,
+      user: process.env.DB_USER,
+      database: process.env.DB_NAME,
+      connectTimeout: Number(process.env.DB_CONNECT_TIMEOUT_MS) || 10000,
+    };
+
+    const troubleshooting = [];
+    if (err.code === "ETIMEDOUT") {
+      troubleshooting.push(
+        "Connection timed out. Verify cPanel Remote MySQL is enabled and Render egress IP is allowlisted.",
+        "Verify DB_PORT is the MySQL service port (usually 3306), not cPanel/WHM ports like 2083/2087.",
+        "Verify DB_HOST is the MySQL host from your cPanel provider (often not the cPanel login host)."
+      );
+    }
+    if (err.code === "ER_ACCESS_DENIED_ERROR") {
+      troubleshooting.push(
+        "MySQL access denied. Verify DB_USER/DB_PASS and ensure the MySQL user is assigned to DB_NAME with proper privileges."
+      );
+    }
+
     console.error("[DB] Pool connection failed", {
       message: err.message,
       code: err.code,
       errno: err.errno,
       sqlState: err.sqlState,
-      host: process.env.DB_HOST,
-      port: Number(process.env.DB_PORT) || 3306,
-      user: process.env.DB_USER,
-      database: process.env.DB_NAME,
+      safeDbConfig,
+      troubleshooting,
     });
     throw err;
   }
